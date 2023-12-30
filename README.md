@@ -1,3 +1,4 @@
-# Phonebook-Backend-FSO
+# backendFSO
 
-Phonebook backend for FSO exercise
+Link to the deployed backend for FSO
+https://backend-for-fso.onrender.com
