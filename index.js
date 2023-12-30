@@ -1,67 +1,61 @@
-const express = require('express');
+import express from 'express';
 const app = express();
-const cors = require('cors');
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-const Note = require('./models/note'); // Import the Note model
+import Contact from './models/phonebook.js';
 
+//A logger function that will be passed to app.use() to add it as a middleware for the incoming request and outcomiing response.
 const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method);
-  console.log('Path:  ', request.path);
-  console.log('Body:  ', request.body);
-  console.log('---');
-  next();
+    console.log('Method: ',request.method);
+    console.log('Path: ', request.path);
+    console.log('BodyL ', request.body);
+    console.log('-----')
+    next();
 };
 
+//An endpoint that will be passed to app.use() to handle 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' });
+    response.status(400).send({ error: 'Unknown URL path' });
 };
 
-app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
 app.use(express.static('build'));
 
-app.get('/api/notes', (request, response) => {
-  Note.find({}).then(notes => {
-    response.json(notes);
-  });
-});
 
-app.post(`/api/notes`, (request, response) => {
-  const body = request.body;
-  if (body.content === undefined) return response.status(400).json({ error: 'content missing' })
-  const note = new Note({
-    content: request.content,
-    important: body.important || false,
-  })
-  note.save().then(savedNote => {
-    response.json(savedNote);
-  })
+//Fetch all the data inside the database
+app.get('/api/contacts', (request, response) => {
+    Contact.find({}).then(result => {
+        response.json(result);
+    })
 })
 
-app.get('/api/notes/:id', (request, response) => {
-  Note.findById(request.params.id).then(note => {
-    response.json(note);
-  });
-});
+app.delete('/api/contacts/:id', (request, response) => {
+    const id = request.params.id;
 
-app.delete('/api/notes/:id', (request, response) => {
-  const id = request.params.id;
-
-  Note.findByIdAndRemove(id)
-    .then(() => {
-      response.status(204).end();
+    Contact.FindByIdAndRemove(id).then(() => {
+        response.status(204).end();
+    }).catch(error => {
+        console.error(`Unable to delete: `, error.message);
+        response.status(500).json({ error: 'Internal server error' });
     })
-    .catch(error => {
-      console.log('Error deleting note:', error.message);
-      response.status(500).json({ error: 'Internal Server Error' });
-    });
-});
+})
 
-app.use(unknownEndpoint);
+app.post('/api/contacts', (request, response) => {
+    const body = request.body;
+    if (body === undefined) return response.status(400).send({ error: 'Content missing' });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+    const contact = new Contact({
+        name: request.name,
+        number: request.number,
+        address: request.address || 'N/A',
+        age: request.age,
+    })
+    contact.save().then(res => {
+        console.log(res)
+    }).catch(error => {
+        console.error(`Unable to save: `, error.message)
+    })
+})
+
