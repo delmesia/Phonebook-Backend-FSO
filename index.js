@@ -2,8 +2,11 @@ import express from 'express';
 const app = express();
 import dotenv from 'dotenv';
 dotenv.config();
+import cors from 'cors';
 
 import Contact from './models/phonebook.js';
+
+app.use(cors());
 
 //A logger function that will be passed to app.use() to add it as a middleware for the incoming request and outcomiing response.
 const requestLogger = (request, response, next) => {
@@ -47,7 +50,7 @@ app.post('/api/contacts', (request, response) => {
     if (!body) return response.status(400).json({ error: 'Content missing' });
 
     const contact = new Contact({
-        name: body.name,        // Corrected: use body.name instead of request.name
+        name: body.name,
         number: body.number,
         address: body.address || 'N/A',
         age: body.age,
