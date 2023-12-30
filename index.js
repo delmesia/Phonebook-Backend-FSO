@@ -7,7 +7,7 @@ import Contact from './models/phonebook.js';
 
 //A logger function that will be passed to app.use() to add it as a middleware for the incoming request and outcomiing response.
 const requestLogger = (request, response, next) => {
-    console.log('Method: ',request.method);
+    console.log('Method: ', request.method);
     console.log('Path: ', request.path);
     console.log('BodyL ', request.body);
     console.log('-----')
@@ -44,23 +44,26 @@ app.delete('/api/contacts/:id', (request, response) => {
 
 app.post('/api/contacts', (request, response) => {
     const body = request.body;
-    if (body === undefined) return response.status(400).send({ error: 'Content missing' });
+    if (!body) return response.status(400).json({ error: 'Content missing' });
 
     const contact = new Contact({
-        name: request.name,
-        number: request.number,
-        address: request.address || 'N/A',
-        age: request.age,
-    })
-    contact.save().then(res => {
-        console.log(res)
+        name: body.name,        // Corrected: use body.name instead of request.name
+        number: body.number,
+        address: body.address || 'N/A',
+        age: body.age,
+    });
+
+    contact.save().then(savedContact => {
+        console.log(savedContact);
+        response.json(savedContact);
     }).catch(error => {
-        console.error(`Unable to save: `, error.message)
-    })
-})
+        console.error('Unable to save:', error.message);
+        response.status(500).json({ error: 'Internal server error' });
+    });
+});
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
 
