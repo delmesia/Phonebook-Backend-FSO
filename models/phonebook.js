@@ -4,7 +4,7 @@ mongoose.set(`strictQuery`, true);
 
 const uri = process.env.MONGODB_URI; //The url will be set to whatever is in the .env (Database link)
 
-console.log(`Attempting to connecto to`, uri);
+console.log('Attempting to connect...');
 
 //Open the connection to MongoDB, log an error if unsuccessfull.
 mongoose.connect(uri)
