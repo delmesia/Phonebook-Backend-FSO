@@ -34,14 +34,19 @@ app.get('/api/contacts', (request, response) => {
     })
 })
 
-app.delete('/api/contacts/:id', (request, response) => {
+app.delete('/api/contacts/:id', async (request, response) => {
     const id = request.params.id;
-    Contact.findByIdAndRemove(id).then(() => {
-        response.status(204).end();
-    }).catch(error => {
+    try {
+        const deletedContact = await Contact.findOneAndDelete({ _id: id });
+        if (!deletedContact) {
+            // If the contact with the specified ID is not found
+            return response.status(404).json({ error: 'Contact not found' });
+        }
+        response.status(204).end(); // No content on successful deletion
+    } catch (error) {
         console.error(`Unable to delete: `, error.message);
         response.status(500).json({ error: 'Internal server error' });
-    });
+    }
 });
 
 
