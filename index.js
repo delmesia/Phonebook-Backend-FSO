@@ -32,12 +32,13 @@ app.use(express.static('build'));
 app.get('/api/contacts', (request, response) => {
     Contact.find({}).then(result => {
         response.json(result);
-    })
-})
+    });
+});
+
 
 app.get('/api/contacts/:id', (request, response) => {
     const contactId = request.params.id;
-    Contact.find({_id: `${contactId}`}).then(result => {
+    Contact.find({id: `${contactId}`}).then(result => {
         response.json(result);
     })
 })
