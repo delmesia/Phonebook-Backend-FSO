@@ -25,11 +25,14 @@ const contactSchema = new mongoose.Schema({
 //Converting the retured value of the document to string properly.
 contactSchema.set('toJSON', {
     transform: (document, returnedObject) => {
-        returnedObject._id = returnedObject._id.toString();
+        returnedObject.id = returnedObject._id.toString();
         delete returnedObject._id;
         delete returnedObject.__v;
     },
 });
+
+
+
 //Export the model
 const Contact = mongoose.model('Contact', contactSchema);
 export default Contact;

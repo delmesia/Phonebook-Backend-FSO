@@ -36,8 +36,13 @@ app.get('/api/contacts', (request, response) => {
 
 app.delete('/api/contacts/:id', async (request, response) => {
     const id = request.params.id;
+    // Check if id is not provided or not a valid ObjectId
+    if (!id || !mongoose.isValidObjectId(id)) {
+        return response.status(400).json({ error: 'Invalid contact ID' });
+    }
     try {
         const deletedContact = await Contact.findOneAndDelete({ _id: id });
+
         if (!deletedContact) {
             // If the contact with the specified ID is not found
             return response.status(404).json({ error: 'Contact not found' });
@@ -48,6 +53,7 @@ app.delete('/api/contacts/:id', async (request, response) => {
         response.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 app.post('/api/contacts', (request, response) => {
