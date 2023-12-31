@@ -35,6 +35,13 @@ app.get('/api/contacts', (request, response) => {
     })
 })
 
+app.get('/api/contacts/:id', (request, response) => {
+    const contactId = request.params.id;
+    Contact.find({_id: `${contactId}`}).then(result => {
+        response.json(result);
+    })
+})
+
 app.delete('/api/contacts/:id', async (request, response) => {
     const id = request.params.id;
 
