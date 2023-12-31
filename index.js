@@ -36,19 +36,18 @@ app.get('/api/contacts', (request, response) => {
 
 app.delete('/api/contacts/:id', (request, response) => {
     const id = request.params.id;
-
-    Contact.FindByIdAndRemove(id).then(() => {
+    Contact.findByIdAndRemove(id).then(() => {
         response.status(204).end();
     }).catch(error => {
         console.error(`Unable to delete: `, error.message);
         response.status(500).json({ error: 'Internal server error' });
-    })
-})
+    });
+});
+
 
 app.post('/api/contacts', (request, response) => {
     const body = request.body;
     if (!body) return response.status(400).json({ error: 'Content missing' });
-
     const contact = new Contact({
         name: body.name,
         number: body.number,
