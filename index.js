@@ -42,8 +42,7 @@ app.delete('/api/contacts/:id', async (request, response) => {
         return response.status(400).json({ error: 'Invalid contact ID' });
     }*/
     try {
-        const deletedContact = await Contact.findOneAndDelete({ id: id });
-
+        const deletedContact = await Contact.findOneAndDelete({ _id: id });
         if (!deletedContact) {
             // If the contact with the specified ID is not found
             return response.status(404).json({ error: 'Contact not found' });
