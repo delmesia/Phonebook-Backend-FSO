@@ -6,7 +6,7 @@ import cors from 'cors';
 
 import Contact from './models/phonebook.js';
 
-app.use(cors());
+app.use(cors({origin: '*'}));
 
 //A logger function that will be passed to app.use() to add it as a middleware for the incoming request and outcomiing response.
 const requestLogger = (request, response, next) => {
