@@ -39,16 +39,23 @@ app.get('/api/contacts', async (request, response) => {
 });
 
 // Search contacts by name (case-insensitive)
-app.get('/api/contacts/:name', async (request, response) => {
+app.get('/api/contacts/:name', (request, response) => {
     try {
-        const contactName = new RegExp(encodeURIComponent(request.params.name), 'i');
-        const result = await Contact.find({ name: contactName });
-        response.json(result);
+        const contactName = decodeURIComponent(request.params.name);
+        const contactRegex = new RegExp(contactName, 'i');
+
+        Contact.find({ name: contactRegex }).then(result => {
+            response.json(result);
+        }).catch(error => {
+            console.error(error);
+            response.status(500).json({ error: 'Internal server error' });
+        });
     } catch (error) {
         console.error(error);
-        response.status(500).json({ error: 'Internal server error' });
+        response.status(400).json({ error: 'Invalid URL parameter' });
     }
 });
+
 
 // Get contact by ID
 app.get('/api/contacts/id/:id', async (request, response) => {
