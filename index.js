@@ -35,15 +35,16 @@ app.get('/api/contacts', (request, response) => {
     });
 });
 
-app.get('api/contacts/:name', (request, response) => {
-    const contactName = request.params.name
-    Contact.find({ name: `${contactName}` }).then(result => {
+app.get('/api/contacts/:name', (request, response) => {
+    const contactName = encodeURIComponent(request.params.name);
+    Contact.find({ name: contactName }).then(result => {
         response.json(result);
     }).catch(error => {
-        console.error(error)
-        response.status(404).json({ error: 'Internal server error' })
-    })
-})
+        console.error(error);
+        response.status(404).json({ error: 'Internal server error' });
+    });
+});
+
 
 app.get('/api/contacts/:id', (request, response) => {
     const contactId = request.params.id;
