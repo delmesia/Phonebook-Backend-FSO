@@ -1,64 +1,73 @@
 import express from 'express';
-const app = express();
 import dotenv from 'dotenv';
-dotenv.config();
 import cors from 'cors';
 import mongoose from 'mongoose';
-
 import Contact from './models/phonebook.js';
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+const app = express();
+dotenv.config();
 
-//A logger function that will be passed to app.use() to add it as a middleware for the incoming request and outcomiing response.
+app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(express.json());
+app.use(express.static('build'));
+
+// Logger middleware for logging request details
 const requestLogger = (request, response, next) => {
-    console.log('Method: ', request.method);
-    console.log('Path: ', request.path);
-    console.log('BodyL ', request.body);
-    console.log('-----')
+    console.log('Method:', request.method);
+    console.log('Path:', request.path);
+    console.log('Body:', request.body);
+    console.log('-----');
     next();
 };
 
-//An endpoint that will be passed to app.use() to handle 
+// Unknown endpoint middleware
 const unknownEndpoint = (request, response) => {
     response.status(400).send({ error: 'Unknown URL path' });
 };
 
-app.use(express.json());
 app.use(requestLogger);
-app.use(express.static('build'));
 
-
-//Fetch all the data inside the database
-app.get('/api/contacts', (request, response) => {
-    Contact.find({}).then(result => {
+// Fetch all contacts
+app.get('/api/contacts', async (request, response) => {
+    try {
+        const result = await Contact.find({});
         response.json(result);
-    });
-});
-
-app.get('/api/contacts/:name', (request, response) => {
-    const contactName = encodeURIComponent(request.params.name);
-    Contact.find({ name: contactName }).then(result => {
-        response.json(result);
-    }).catch(error => {
+    } catch (error) {
         console.error(error);
-        response.status(404).json({ error: 'Internal server error' });
-    });
+        response.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-
-app.get('/api/contacts/:id', (request, response) => {
-    const contactId = request.params.id;
-    Contact.find({ id: `${contactId}` }).then(result => {
+// Search contacts by name (case-insensitive)
+app.get('/api/contacts/:name', async (request, response) => {
+    try {
+        const contactName = new RegExp(encodeURIComponent(request.params.name), 'i');
+        const result = await Contact.find({ name: contactName });
         response.json(result);
-    })
-})
+    } catch (error) {
+        console.error(error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
 
+// Get contact by ID
+app.get('/api/contacts/id/:id', async (request, response) => {
+    try {
+        const contactId = request.params.id;
+        const result = await Contact.findById(contactId);
+        response.json(result);
+    } catch (error) {
+        console.error(error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update contact by ID
 app.put('/api/contacts/:id', async (req, res) => {
     const id = req.params.id;
-    const body = req.body
+    const body = req.body;
 
     try {
-        // Find the resource by ID and update it
         const updatedResource = await Contact.findByIdAndUpdate(id, body, {
             new: true, // Return the updated document
         });
@@ -74,30 +83,30 @@ app.put('/api/contacts/:id', async (req, res) => {
     }
 });
 
+// Delete contact by ID
 app.delete('/api/contacts/:id', async (request, response) => {
     const id = request.params.id;
 
-    // Check if id is not provided or not a valid ObjectId
-    if (!id || !mongoose.isValidObjectId(id)) {
-        return response.status(400).json({ error: 'Invalid contact ID' });
-    }
-
     try {
-        const deletedContact = await Contact.findOneAndDelete({ _id: id });
+        const deletedContact = await Contact.findByIdAndDelete(id);
         if (!deletedContact) {
-            // If the contact with the specified ID is not found
             return response.status(404).json({ error: 'Contact not found' });
         }
-        response.status(204).end(); // No content on successful deletion
+        response.status(204).end();
     } catch (error) {
         console.error(`Unable to delete: `, error.message);
         response.status(500).json({ error: 'Internal server error' });
     }
 });
 
-app.post('/api/contacts', (request, response) => {
+// Create a new contact
+app.post('/api/contacts', async (request, response) => {
     const body = request.body;
-    if (!body) return response.status(400).json({ error: 'Content missing' });
+
+    if (!body) {
+        return response.status(400).json({ error: 'Content missing' });
+    }
+
     const contact = new Contact({
         name: body.name,
         number: body.number,
@@ -105,17 +114,17 @@ app.post('/api/contacts', (request, response) => {
         age: body.age,
     });
 
-    contact.save().then(savedContact => {
+    try {
+        const savedContact = await contact.save();
         console.log(savedContact);
         response.json(savedContact);
-    }).catch(error => {
+    } catch (error) {
         console.error('Unable to save:', error.message);
         response.status(500).json({ error: 'Internal server error' });
-    });
+    }
 });
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
